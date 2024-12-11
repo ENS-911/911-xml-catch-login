@@ -1,30 +1,39 @@
 import json
-import boto3
-from botocore.exceptions import ClientError
 
 def lambda_handler(event, context):
-    # Example credentials stored in a dictionary for demonstration
-    # Use a secure database like DynamoDB in production
-    users = {
-        "hamiltoncounty911": "P9x7!aQ2#Wd8@Lf3"
-    }
+    try:
+        print("Received event:", event)
 
-    username = event['username']
-    password = event['password']
-
-    if username in users and users[username] == password:
-        # Authentication successful
-        return {
-            "Role": "arn:aws:iam::account-id:role/SFTPUserRole",
-            "Policy": "",
-            "HomeDirectoryDetails": [
-                {
-                    "Entry": "/",
-                    "Target": f"arn:aws:s3:::ens-file-store/{username}"
-                }
-            ],
-            "HomeDirectoryType": "LOGICAL"
+        users = {
+            "hamiltoncounty911": "P9x7!aQ2#Wd8@Lf3"
         }
-    else:
-        # Authentication failed
-        raise Exception("Invalid username or password")
+        print("User dictionary loaded.")
+
+        username = event.get('username')
+        password = event.get('password')
+
+        print(f"Username: {username}")
+        print(f"Password: {password}")
+
+        if username in users and users[username] == password:
+            print(f"Authentication successful for user: {username}")
+            response = {
+                "Role": "arn:aws:iam::527618457101:role/SFTPUserRole",
+                "Policy": "",
+                "HomeDirectoryDetails": [
+                    {
+                        "Entry": "/",
+                        "Target": "arn:aws:s3:::ens-file-store/hamiltoncounty911"
+                    }
+                ],
+                "HomeDirectoryType": "LOGICAL"
+            }
+            print("Preparing to return response.")
+            print("Returning response:", json.dumps(response))  # Log the response
+            return response
+        else:
+            print(f"Authentication failed for user: {username}")
+            raise Exception("Invalid username or password")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        raise
